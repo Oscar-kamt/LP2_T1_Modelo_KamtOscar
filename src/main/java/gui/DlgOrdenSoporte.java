@@ -197,7 +197,8 @@ public class DlgOrdenSoporte extends JDialog implements ActionListener {
 
 		habilitarEntradas(false);
 		habilitarBotones(true);
-		cargarComboBoxActividad();
+		cargarTecnicos();
+		cargarCliente();
 	}
 
 	public void actionPerformed(ActionEvent arg0) {
@@ -270,7 +271,34 @@ public class DlgOrdenSoporte extends JDialog implements ActionListener {
 		txtNroOrdenSoporte.requestFocus();
 	}
 
-	void cargarComboBoxActividad() {
+	void cargarTecnicos() {
+		EntityManager manager = JPAUtil.getEntityManager();
+		String jpql = "select t from Tecnico t";
+		
+		try {
+			List<Tecnico> lstTecnicos = manager.createQuery(jpql,Tecnico.class).getResultList();
+			
+			for(Tecnico tecnico:lstTecnicos){
+				cboTecnicos.addItem(tecnico);
+			}
+		} finally {
+			manager.close();
+		}
+	}
+	
+	void cargarCliente() {
+		EntityManager manager = JPAUtil.getEntityManager();
+		String jpql = "select c from Cliente c";
+		
+		try {
+			List<Cliente> lstClientes = manager.createQuery(jpql,Cliente.class).getResultList();
+			
+			for(Cliente cliente:lstClientes){
+				cboClientes.addItem(cliente);
+			}
+		} finally {
+			manager.close();
+		}
 
 	}
 
@@ -301,7 +329,28 @@ public class DlgOrdenSoporte extends JDialog implements ActionListener {
 	}
 
 	void adicionar() {
+		String detalleIncidencia =txtDetalleIncidencia.getText();
+		Tecnico tecnico = (Tecnico)cboTecnicos.getSelectedItem();
+		Cliente cliente = (Cliente)cboClientes.getSelectedItem();
+		Double monto = Double.parseDouble(txtMonto.getText());
 		
+		EntityManager manager = JPAUtil.getEntityManager();
+		
+		try {
+			Orden_Soporte ordeSoporte = new Orden_Soporte(null, null, tecnico, cliente, monto, detalleIncidencia);
+			
+			manager.getTransaction().begin();
+			manager.persist(ordeSoporte);
+			manager.getTransaction().commit();
+			
+			mensajeInfo("Orden de soporte regsitrada");
+			limpiar();
+		} catch (Exception e) {
+			mensajeError("Hubo un error en la transacion");
+			e.printStackTrace();
+		}finally {
+			manager.close();
+		}
 	}
 
 	void consultar() {

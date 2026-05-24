@@ -40,7 +40,9 @@ public class Tecnico {
 		}
 	}
 	
-	
+	public String toString() {
+		return nombre;
+	}
 	
 	
 }
