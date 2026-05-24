@@ -7,6 +7,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.time.LocalDate;
 import java.util.List;
 
 import javax.persistence.EntityManager;
@@ -354,11 +355,51 @@ public class DlgOrdenSoporte extends JDialog implements ActionListener {
 	}
 
 	void consultar() {
+		Integer nroOrden = Integer.parseInt(txtNroOrdenSoporte.getText());
+		EntityManager manager = JPAUtil.getEntityManager();
+		
+		try {
+			Orden_Soporte orden_Soporte = manager.find(Orden_Soporte.class, nroOrden);
+			if (orden_Soporte == null) {
+				mensajeAdvertencia("Orden de soporte no encontrada");
+				return;
+			}
+			txtDetalleIncidencia.setText(orden_Soporte.getDetalleIncidencia());
+			cboTecnicos.setSelectedItem(orden_Soporte.getIdTecnico());
+			cboClientes.setSelectedItem(orden_Soporte.getIdCliente());
+			txtMonto.setText(orden_Soporte.getMonto()+"");
+			txtFechaRegistro.setText(orden_Soporte.getFechaRegistro()+"");
+			
+		} finally {
+			manager.close();
+		}
 
 	}
 
 	void modificar() {
-
+		Integer nroOrden = Integer.parseInt(txtNroOrdenSoporte.getText());
+		String detalleIncidencia =txtDetalleIncidencia.getText();
+		Tecnico tecnico = (Tecnico)cboTecnicos.getSelectedItem();
+		Cliente cliente = (Cliente)cboClientes.getSelectedItem();
+		Double monto = Double.parseDouble(txtMonto.getText());
+		
+		EntityManager manager = JPAUtil.getEntityManager();
+		
+		try {
+			Orden_Soporte ordeSoporte = new Orden_Soporte(null, null, tecnico, cliente, monto, detalleIncidencia);
+			
+			manager.getTransaction().begin();
+			manager.merge(ordeSoporte);
+			manager.getTransaction().commit();
+			
+			mensajeInfo("Orden de soporte actualizado");
+			limpiar();
+		} catch (Exception e) {
+			mensajeError("Hubo un error en la transacion");
+			e.printStackTrace();
+		}finally {
+			manager.close();
+		}
 	}
 
 	void eliminar() {
